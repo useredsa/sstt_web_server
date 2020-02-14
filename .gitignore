@@ -1,0 +1,7 @@
+# Prerequisites
+*.d
+
+# Compiled Object files
+*.o
+
+webserver.log
