@@ -1,3 +1,24 @@
+/**
+ * @brief (Super) Minimalistic Logging functionality for the project.
+ * @author Emilio Domínguez Sánchez
+ * 
+ * For extensive comprehension is better to read the code.
+ * Nevertheless, we provide some examples.
+ * Usage:
+ *        Code: log << "alberto, tenemos un problema de tipo " << type << endl;
+ *        Output: INFO(socket ---): alberto, tenemos un problema de tipo ---
+ *        Code: log << endl;
+ *        Output:
+ *        Code: log << "mensaje de log 1" << endl;
+ *              log << "mensaje de log 2\n";
+ *        Output: INFO(socket ---): mensaje de log 1
+ *                INFO(socket ---): mensaje de log 2
+ *        Code: logerr << "falló una llamada al sistema" << endl;
+ *        Output: ERROR: errno=--- exiting pid=---: falló una llamada al sistema
+ *        Code: logerr << "problemas Mike!" << endl << panic();
+ *        Output: ERROR: errno=--- exiting pid=---: problemas Mike!
+ *                -> Program finishes execution with code -1
+ */
 #ifndef log_hpp_INCLUDED
 #define log_hpp_INCLUDED
 
