@@ -64,7 +64,7 @@ public:
 
 private:
     void outputSignature(){
-        os << "ERROR: Errno=" << errno << " exiting pid=" << getpid() << ": ";
+        os << "ERROR: errno=" << errno << " exiting pid=" << getpid() << ": ";
     }
 } logerr(cout);
 
