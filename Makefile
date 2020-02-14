@@ -45,6 +45,7 @@ $(BUILDDIR)/%.o: $(SRCDIR)/%.cpp
 # rule to generate a dep file by using the C preprocessor
 # (see man cpp for details on the -MM and -MT options)
 $(DEPDIR)/%.d: $(SRCDIR)/%.cpp
+	@mkdir build
 	($(CXX) $(CXXFLAGS) $(INC) $(LDLIBS) $< -MM -MT $(@:.d=.o); echo '\t$(CXX) $(CXXFLAGS) $(INC) $(LDLIBS) -c $< -o $(@:.d=.o)';) >$@
 
 # Include dependencies files
