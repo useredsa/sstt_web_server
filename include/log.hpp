@@ -23,6 +23,9 @@
 #define log_hpp_INCLUDED
 
 #include <iostream>
+#include <string.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 #include "defs.hpp"
 
@@ -85,7 +88,7 @@ public:
 
 private:
     void outputSignature(){
-        os << "ERROR: errno=" << errno << " exiting pid=" << getpid() << ": ";
+        os << "ERROR: errno=" << errno << " strerror=" << strerror(errno) << " exiting pid=" << getpid() << ": ";
     }
 } logerr(cout);
 
@@ -96,7 +99,7 @@ public:
     int exitCode = -1;
 };
 
-void operator<< (const ostream& os, const panic& p) {
+static inline void operator<< (const ostream& log, const panic& p) {
     exit(p.exitCode);
 }
 

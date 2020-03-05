@@ -63,10 +63,12 @@ cleandep:
 dockerim: Dockerfile
 	docker images 2>&1 | grep -qe ubuntu/server || docker build -t ubuntu/server:r1 .
 
-run-nox:
+run-nox: $(TARGET)
 	docker run -it --rm \
 		-h server \
 		-p 8000:8000 \
 		-v /tmp:/tmp/tmp:rw \
 		-v `pwd`/bin:/home/alumno/ --name server ubuntu/server:r1
 
+transfer: $(TARGET)
+	scp -r bin src include Makefile alumno@192.168.56.104:/home/alumno
