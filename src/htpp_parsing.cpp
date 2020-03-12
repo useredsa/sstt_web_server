@@ -58,4 +58,21 @@ int parse_header_field(Header_Field &hf, char* start) {
     return start-sstart;
 }
 
+bool valid_uri(const char* uri) {
+    int level = 0;
+    const char* last_slash = uri;
+    do {
+        if (*uri == '\0' or *uri == '/') {
+			if (strncmp(last_slash, "..", 2) == 0) {
+    			level--;
+			} else if (strncmp(last_slash, ".", uri-last_slash) != 0) {
+    			level++;
+			}
+			last_slash = uri+1;
+        }
+    } while (*uri++ != '\0');
+    if (level < 0) return false;
+    return true;
+}
+
 } // namespace SSTT_HTTP_PARSING

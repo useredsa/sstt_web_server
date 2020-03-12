@@ -6,8 +6,22 @@
 
 extern const char* SERVER_NAME;
 
-const int BUFFER_CAP  = 8<<10; // 8Kb
-const int KA_TIME_OUT = 5;     // s
+/** The size of the read/write buffers.
+ * Limits the size of the accepted http header
+ */
+const int BUFFER_CAP  = 8<<10;  // 8Kb
+/** The maximum time that the server will wait for a new message */
+const int SERVER_TIME_OUT = 5;  // in secons
+/** The maximum time that the server will wait between fragments of a message */
+const int LATENCY_TIME_OUT = 1; // in seconds
+
+/** Exit code upon error. (for instance, after a failed syscall) */
+const int SERVER_ERR  = -1;
+/** Exit code upon a failed precondition in the client's message */
+const int PRECOND_ERR = -2;
+
+extern int socket_fd;
+extern int client_fd;
 
 struct association {
     const char* key;
@@ -90,9 +104,23 @@ const std::vector<status_code_phrase> HTTP_STATUSES {
     {505, "HTTP Version not supported"}
 };
 
+/**
+ * @brief returns the MIME file format for a given file name.
+ * 
+ * @param pathname path that identifies the file
+ * @return a reference to a string in the MIME format or NULL if the
+ * extension is not supported.
+ */
+const char* content_type(const char* pathname);
 
-extern int socket_fd;
-extern int client_fd;
+/**
+ * @brief returns the reason phrase for a given HTTP status code.
+ * 
+ * This function assumes that the code is supported. That is, it
+ * is declared inside HTTP_STATUSES. Otherwise, it returns a
+ * random reason phrase.
+ */
+const char* to_reason_phrase(int code);
 
 #endif // defs_hpp_INCLUDED
 

@@ -20,6 +20,12 @@ struct Header_Field {
 int parse_request_line(Request_Line& rl, char* start);
 int parse_header_field(Header_Field& hf, char* start);
 
+/**
+ * @brief Current implementation only checks that the uri
+ * doesn't reference content above the parent directory.
+ */
+bool valid_uri(const char* uri);
+
 }
 
 #endif // http_parsing_hpp_INCLUDED

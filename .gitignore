@@ -4,4 +4,8 @@
 # Compiled Object files
 *.o
 
+# Cache
+.ccls
+.ccls-cache
+
 webserver.log

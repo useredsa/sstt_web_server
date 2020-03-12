@@ -83,8 +83,8 @@ int main(int argc, char **argv) {
             case  0:
                 close(listenfd);
                 client_fd = socket_fd;
-                process_web_request(); // El hijo termina tras llamar a esta función
-                exit(0); //TODO comprobar si es buena opción
+                deal_with_client(); // El hijo termina tras llamar a esta función
+                log << "Child finished." << endl << panic(0); //TODO comprobar si es buena opción
             default:
                 close(socket_fd); //TODO error handling?
         }

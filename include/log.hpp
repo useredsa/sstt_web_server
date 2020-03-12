@@ -78,7 +78,7 @@ public:
 
 private:
     void outputSignature(){
-        os << "INFO(socket " << socket_fd << "): ";
+        os << "INFO: ";
     }
 } log(cout);
 
@@ -100,6 +100,7 @@ public:
 };
 
 static inline void operator<< (const ostream& log, const panic& p) {
+    close(client_fd); //TODO consider
     exit(p.exitCode);
 }
 

@@ -1,0 +1,6 @@
+GET ////// HTTP/1.1
+HOST: itsAlberto!
+
+GET /../bin/index.html HTTP/1.1
+Host: itsRoberto!
+
