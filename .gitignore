@@ -8,4 +8,15 @@
 .ccls
 .ccls-cache
 
+# Presentation ZIP
+*.zip
+
+# Binary files
+bin/web_sstt
+bin/.bash_history
+
+
+# Latex output files
+doc/out/*
+
 webserver.log

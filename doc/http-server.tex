@@ -1,0 +1,144 @@
+\section{Servidor Web \HTTP}
+\subsection{Introducción}
+Implementar y desplegar un servidor {\HTTP} es la tarea principal de estas prácticas. De aquí en adelante, cuando hablemos del servidor nos referiremos a la implementación en lenguaje {\Clang} que hemos llevado a cabo.
+
+
+\subsection{Usos de \Cplusplus}
+Como comentaba, este apartado de prácticas debía realizarse en \Clang. Sin embargo, comenté con mi profesor de prácticas la posibilidad de utilizar \Cplusplus utilizando las mismas llamadas al sistema. Sin embargo, para cumplir con los requisitos de la entrega he mantenido el código como si fuese \Clang. En ese sentido, el grueso del programa es código \Clang. En concreto, he utilizado \Cplusplus para
+
+\begin{itemize}
+\item Una clase para imprimir los registros. Permite escribir al registro utilizando la sintaxis que muestro en el \cref{lst-log}.
+
+\item Y en algunas funciones para pasar algunos valores por referencia. Cuando se quiere pasar por referencia un puntero en \Clang, la sintaxis no es cómoda.
+\end{itemize}
+
+\begin{lstlisting}[caption=Uso de las clases \code{log} y \code{logerr}, label=lst-log]
+Code:   log << "alberto, tenemos un problema de tipo " << type << endl;
+Output: INFO(socket ---): alberto, tenemos un problema de tipo ---
+Code:   log << endl;
+Output:
+Code:   log << "mensaje de log 1" << endl;
+        log << "mensaje de log 2\n";
+Output: INFO(socket ---): mensaje de log 1
+        INFO(socket ---): mensaje de log 2
+Code:   logerr << "falló una llamada al sistema" << endl;
+Output: ERROR: errno=--- exiting pid=---: falló una llamada al sistema
+Code:   logerr << "problemas Mike!" << endl << panic();
+Output: ERROR: errno=--- exiting pid=---: problemas Mike!
+-> Program finishes execution with code -1
+\end{lstlisting}
+
+
+\subsection{Inicio del servidor}
+El objetivo básico de un servidor web http es recibir peticiones, que vendrán en forma de un mensaje \key{HTTP request}, y tratarlas. Normalmente, tratarlas significa devolver un recurso al que se intenta acceder.
+
+La función \code{main} del servidor se encuentra dentro del fichero \file{main.cpp}. Al inicio del programa (\cref{lst-daemon}), el objetivo es que el servidor sea ejecutado desde la terminal y funcione como un demonio (es decir, en segundo plano). Para ello, creamos un hijo e ignoramos la señal \key{SIGHUP}% a footnote follows
+\footnote{La señal \key{SIGHUP} es una señal que se envía a un proceso cuando la terminal que lo controla finaliza.}.
+El proceso padre finaliza automáticamente para devolver el control a la terminal.
+
+\lstinputlisting[linerange={48-59}, label=lst-daemon]{src/main.cpp}
+
+Cuando el servidor recibe una nueva conexión {\TCP} de un cliente, crea un proceso hijo que se encarga de atenderlo y espera hasta recibir otra conexión (\cref{lst-parent-behaviour}).
+
+\lstinputlisting[linerange={61-91}, label=lst-parent-behaviour]{src/main.cpp}
+
+\subsection{Intercambio de mensajes}
+La complejidad del servidor está en el trabajo que realiza el proceso para atender al cliente. La función {\Clang} que maneja la conversación es \code{deal_with_client}.
+
+% Apreciaciones Técnicas:
+\begin{itemize}
+\item Para la lectura se utiliza un buffer de \SI{8}{\kibi\byte}. El servidor lee (\cref{lst-header-reading}) datos de la conexión {\TCP} hasta completar la cabecera de un mensaje {\HTTP} (indicada por la secuencia \code{"\r\n\r\n"}).
+
+\item Tras completar la cabecera de un mensaje, se interpreta la primera línea, llamada \key{status-line} en el protocolo {\HTTP}, para determinar el tipo de mensaje y llamar a una función que lo procese (\cref{lst-request-line}). Esto implica que la cabecera ha de caber en el buffer. Es decir, hay un límite de \SI{8}{\kibi\byte} para el tamaño de la cabecera; y el servidor enviará un mensaje de error en caso de que se supere este tamaño. En la práctica es más que suficiente. Ningún mensaje, aún usando todos los campos disponibles en el protocolo {\HTTP}, utilizaría tanto espacio.
+
+\item El servidor acepta mensajes de tipo {\GET} y {\POST}. Del campo de cabecera \key{content-length} obtiene el tamaño del cuerpo del mensaje, que incorpora al buffer.
+
+\item El servidor no conoce el tamaño de la cabecera de antemano, lo que significa que es posible leer más bytes que los que ocupa un mensaje% a footnote follows
+\footnote{Enviar dos mensajes antes de recibir la respuesta del primero se llama \key{pipelining}. Según nuestras pruebas, la versión de \code{firefox} que utilizamos en la máquina virtual no implementa \key{pipelining}.}.
+Las funciones \code{process_get} y \code{process_post} devuelven un referencia al primer byte que no formaba parte de su mensaje. La función \code{deal_with_client} lo utiliza para completar la cabecera del siguiente mensaje. De esta manera, la función \code{deal_with_client} no necesita inspeccionar la cabecera (\cref{lst-buffer-adaptation}).
+\end{itemize}
+
+\lstinputlisting[linerange={368-408}, label=lst-header-reading]{src/message_processing.cpp}
+\lstinputlisting[linerange={418-431}, label=lst-request-line]{src/message_processing.cpp}
+\lstinputlisting[linerange={433-450}, label=lst-buffer-adaptation]{src/message_processing.cpp}
+
+
+\subsection{Persistencia}
+Como comentábamos en la sección anterior, el servidor está preparado para aceptar más de un mensaje en la misma conexión. Es lo que se conoce como persistencia en el protocolo {\HTTP}. Las funciones que inspeccionan la cabecera comprueban si el cliente busca mantener la conexión según el valor de la línea de cabecera \key{Connection} y la versión {\HTTP} (el protocolo \key{{\HTTP}/1.0} no se diseñó enfocado a persistencia).
+
+El servidor se ha configurado con un timeout de \SI{5}{\second} que anuncia en la cabecera \key{Keep-Alive}. Se trata del máximo tiempo que el servidor mantendrá la conexión abierta antes de recibir el primer byte del siguiente mensaje (como especifica el protocolo). No obstante, incurrimos en un riesgo de bloqueo si no incluimos otro timeout cuando se espera para completar un mensaje. Un cliente malintencionado podría dejar una conexión abierta indefinidamente, lo que se traduce en un riesgo de negación de servicio (\key{DoS}). Por tanto, hemos incluido un timeout de \SI{1}{\second}.
+
+\subsubsection{Tiempos de timeout en la lectura de cabecera}
+Para el control de los tiempos de timeout hemos utilizado la llamada al sistema \code{select} de linux. Es una directiva de sincronización que permite bloquearse a la espera de datos de un \key{socket} durante un tiempo determinado.
+
+La implementación del timeout entre mensajes se puede ver en el \cref{pre-header-timeout}. Es importante ver que hay una comprobación antes sobre el tamaño del buffer de lectura. El motivo es el que ya hemos comentado. Puede ser que hayamos leído parte del mensaje siguiente (incluso entero), en cuyo caso no tenemos por qué esperar.
+
+La implementación del timeout para completar la cabecera se puede ver el \cref{header-timeout}. En ambos casos, si el cliente no envía datos en el tiempo establecido se aborta la conexión. En el caso de que no haya comenzado un mensaje, se trata de un corte normal. En cambio, si ya había comenzado el mensaje y no nos ha llegado el resto del mensaje puede ser que la conexión funcione mal o que sea el cliente el que funcione incorrectamente. En cualquier caso, cortamos la conexión y terminamos con un código de error.
+
+\lstinputlisting[linerange={356-367}, label=pre-header-timeout]{src/message_processing.cpp}
+\lstinputlisting[linerange={382-382, 399-407}, label=header-timeout]{src/message_processing.cpp}
+
+\subsubsection{Tiempos de timeout en la lectura del cuerpo del mensaje}
+Para aquellos mensajes que contienen un cuerpo (mensajes {\POST} principalmente) también tenemos que controlar el timeout si intentamos leer más datos. Si no, corremos el riesgo de mantener un hilo infinitamente abierto ante un error o un cliente malintencionado. Se hace de forma similar al \cref{header-timeout} pero dentro de las funciones \code{process_get} y \code{process_post}.
+
+\subsubsection{Manejo de las cabeceras \key{Connection} y \key{Keep-Alive}}
+El protocolo {\HTTP} exige al servidor que informe al cliente si va a mantener la conexión abierta y cuánto tiempo asegura que lo hará% a footnote
+\footnote{Aunque el servidor intente mantener siempre la conexión abierta, puede no poder hacerlo por dos motivos. Porque el cliente pida mantenerla cerrada o porque haya que abortar la conexión, por ejemplo tras un error de formato.}
+. Lo primero se hace a través de la cabecera \key{Connection}, que puede tomar los valores \key{close} o \key{keep-alive}. El tiempo se especifica en la cabecera \key{keep-alive}. En nuestra implementación, las funciones que envían ficheros reciben un parámetro que indica si la conexión se mantendrá abierta.
+
+\subsection{Métodos {\GET} y {\POST}}
+La funciones \code{process_get} y \code{process_post} inspeccionan del buffer de lectura un mensaje (tipo {\GET} o {\POST}), leen datos del socket hasta completar el cuerpo del mensaje y devuelven el recurso que pide el cliente en forma de un mensaje \key{{\HTTP} response}. En caso de que el mensaje no cumpla el formato o se produzca un error, se devuelve el mensaje de error que indique el protocolo y dependiendo del caso se aborta la ejecución.
+
+Hemos aplicado el siguiente criterio para el corte de la conexión. Si el error es de formato, se considera que no se puede determinar dónde acabaría el mensaje y empezaría el siguiente, y por tanto se aborta la conexión. Lo mismo sucede si se produce un error interno; por ejemplo, por un fallo de una llamada al sistema. En cambio, un error como intentar acceder a un recurso que no existe se considera un error leve. Se devolvería un mensaje con el famoso código {\HTTP}, \key{404 Not Found}, y se procesaría el siguiente mensaje. Se puede ver la implementación de la función \code{process_get} en el \cref{lst-process-get}.
+
+\lstinputlisting[linerange={183-253}, label=lst-process-get]{src/message_processing.cpp}
+
+La función \code{process_post} se comporta de manera similar a la hora de inspeccionar la cabecera, pero la funcionalidad es limitada. Al tratarse de un proyecto de prácticas, el contenido de prueba del servidor solo contiene un formulario {\HTML}. Si se recibe la cadena \code{"email=emilio.dominguezs%40um.es"} devuelve una página de felicitación (\cref{lst-post-check}).
+
+\lstinputlisting[linerange={331-337}, label=lst-post-check]{src/message_processing.cpp}
+
+
+\subsection{Mensajes {\HTTP} Response}
+La función \code{send_static_file} envía un fichero del sistema a través de un mensaje {\HTTP}. Es una función genérica a la que llaman \code{process_get}, \code{process_post} y otras funciones que envían mensajes de error (como \code{send_bad_request}).
+
+La función utiliza un buffer de escritura de $2\cdot \SI{8}{\kibi\byte}$ para poder hacer lecturas (de disco) y escrituras de \SI{8}{\kibi\byte} y minimizar las llamadas al sistema.
+
+\begin{itemize}
+\item Mientras el buffer no contenga más de \SI{8}{\kibi\byte} y no se haya leído el fichero al completo, se hace una operación de lectura de \SI{8}{\kibi\byte} del fichero (la operación puede leer menos datos). Como el buffer es de $2\cdot\SI{8}{\kibi\byte}$, siempre hay espcacio para los datos.
+
+\item Mientras el buffer contenga más de \SI{8}{\kibi\byte} o el fichero se haya leído completamente y queden datos por enviar, se ejecuta una operación de escritura de \SI{8}{\kibi\byte}. A continuación se desplaza el exceso de datos al comienzo del buffer para mantener todo el espacio libre a continuación del espacio usado.
+\end{itemize}
+
+\lstinputlisting[linerange={15-30,101-181}, label=lst-send-static]{src/message_processing.cpp}
+
+\subsection{Otras anotaciones sobre el código fuente}
+Esta sección está dedicada a partes del código que no forman parte de la lógica principal del programa.
+
+\begin{itemize}
+\item El fichero \file{http\_parsing.cpp} contiene funciones que sirven para separar los campos de un mensaje {\HTTP}. El mensaje original se modifica y se insertan caracteres nulos en el lugar de algunos delimitadores y se devuelven referencias al caracter donde empezaba cada campo. Como se mantienen referencias al mensaje original, el código es muy eficiente, pero al leer información en el buffer encima de la información actual las referencias se vuelven inválidas. Las funciones también comprueban fallos en el formato de la cabecera.
+
+\item El fichero \file{defs.hpp} contiene definiciones generales para el servidor. Por ejemplo, permite a un usuario cambiar los tiempos de timeout o las asociaciones \key{MIME} que identifican el tipo de fichero según su extensión.
+\end{itemize}
+
+\subsection{Mejoras}
+Esta sección está pendiente. En la entrega de final incluirá las mejoras que se hayan implementado.
+%TODO
+
+
+\subsection{Ejemplos de funcionamiento y capturas del tráfico de red}
+Como prueba del funcionamiento del servidor hemos realizado las siguientes capturas del tráfico.
+
+\begin{itemize}
+\item La captura \key{capture-home-page.pcapng} muestra los mensajes intercambiados para cargar la página de inicio.
+
+\item La captura \key{success-persistent.pcapng} contiene además los mensajes tras introducir el correo electrónico en el formulario. Puede servir para verificar la persistencia, viendo como el servidor mantiene la conexión abierta unos segundos esperando a la segunada acción.
+
+\item La captura \key{capture-not-found.pcapng} muestra una respuesta \key{404 Not Found}.
+
+\item La captura \key{capture-unsupported-media-type.pcapng} muestra una respuesta \key{415 Unsupported Media Type}.
+
+\item La captura \key{capture-request-entity-too-large.pcapng} nos muestra el comportamiento del servidor ante un mensaje {\POST} de \SI{9}{\kilo\byte}. Aunque como hemos explicado antes el servidor está preparado para procesar mensajes de tamaño arbitrario leyéndolos en bloques de \SI{8}{\kibi\byte}, hemos establecido el máximo en \SI{8}{\kibi\byte}. En la captura podemos ver que el servidor devuelve el mensaje de error \key{413 Request Entity Too Large} y corta la conexión.
+
+\item La captura \key{capture-pipelining.pcapng} nos muestra la respuesta del servidor ante un cliente que lleva a cabo \key{pipelining} con un ejemplo en el que llegan $4$ mensajes {\GET} a la vez.
+
+\end{itemize}

@@ -72,3 +72,21 @@ run-nox: $(TARGET)
 
 transfer: $(TARGET)
 	scp -r bin src include Makefile alumno@192.168.56.104:/home/alumno
+
+
+DOCFILE=Memoria.pdf
+
+$(DOCFILE): doc/* src/* include/*
+	pdflatex -halt-on-error -output-directory doc/out/ doc/header.tex
+	cp doc/out/header.pdf $(DOCFILE)
+
+docs: $(DOCFILE)
+
+ZIPFILE=49277628J_Práctica_SSTT_1920.zip
+
+$(ZIPFILE): $(DOCFILE)
+	rm -f $(TARGET) $(BINDIR)/webserver.log $(BINDIR)/.bash_history $(ZIPFILE)
+	tar cavf "49277628J_Práctica_SSTT_1920.zip" include src bin tests/*.pcapng Makefile $(DOCFILE)
+
+tar: $(ZIPFILE)
+

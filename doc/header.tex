@@ -1,0 +1,85 @@
+\documentclass[12pt, onside]{article}
+\usepackage[utf8]{inputenc}             % UTF8 encoding
+\usepackage{parskip}% Extra interlining
+\usepackage[margin=0.8in]{geometry}    % Margins
+\usepackage[spanish]{babel}
+
+
+% Header and Footer
+\usepackage{fancyhdr}
+\setlength\headheight{30pt}
+\pagestyle{fancy}
+\renewcommand{\headrulewidth}{0.4pt}
+\fancyhead{}
+\fancyhead[L]{
+    \textbf{Prácticas Servicios Telemáticos}
+}
+\fancyhead[R]{
+    Emilio Domínguez Sánchez
+}
+\fancyfoot{}
+\fancyfoot[C]{\thepage}
+
+
+\usepackage{hyperref}
+\usepackage{cleveref}
+\usepackage{xcolor}
+\input{doc/listings.tex}
+\usepackage[binary-units=true]{siunitx}
+\usepackage{multirow}
+
+
+
+\newcommand{\key}{\texttt}
+\newcommand{\file}{}
+\newcommand{\HTTP}{HTTP}
+\newcommand{\GET}{GET}
+\newcommand{\POST}{POST}
+\newcommand{\HTML}{HTML}
+\newcommand{\TCP}[0]{TCP}
+\newcommand{\Clang}{C}
+\newcommand{\Cplusplus}{C++}
+
+
+
+\begin{document}
+\input{doc/title-page.tex}
+\newpage
+\tableofcontents
+\newpage
+
+\section{Introducción}
+La asignatura de Servicios Telemáticos del grado en Ingeniería Informática consta de una parte práctica que consiste en configurar y poner en marcha un conjunto de servicios telemáticos. El enunciado de la práctica %TODO referencia
+describe los objetivos. En esta memoria se recoge la implementación del enunciado así como el proceso de toma de decisiones.
+
+
+%\section{Escenario Desarrollado y Versiones del Software}
+%\section{Configuraciones}
+
+\input{doc/http-server.tex}
+
+\section{Horas de Trabajo}
+Para contabilizar las horas trabajadas en esta entrega hemos utilizado la herramienta \key{progesa-test} de la Facultad de Informática. A continuación se puede ver una tabla con el tiempo dedicado a cada apartado de la práctica.
+
+\begin{center}
+\begin{tabular}{|p{5cm}|c|}
+    \hline
+    \multicolumn{2}{|c|}{Entrega Anticipada} \\
+    \hline\hline
+    \multicolumn{1}{|c|}{Actividad} & Trabajo Autónomo \\
+    \hline
+    Implementación básica servidor {\HTTP} & \SI{17}{\hour} \SI{24}{\minute} \\
+    \hline
+    Documentación & \phantom{9}\SI{5}{\hour} \SI{45}{\minute} \\
+    \hline
+    Revisión & \phantom{\SI{99}{\hour}} \SI{35}{\minute} \\
+    \hline
+    \textbf{TOTAL} & \SI{23}{\hour} \SI{44}{\minute} \\ \hline
+    % \textbf{MEDIAS} & 2.26\% & 5.45\% & 88.85\% & 3.43\% & 100\% \\ \hline
+\end{tabular}
+\end{center}
+
+
+% \section{Conclusiones}
+    % \lstinputlisting[caption=message\_processing.cpp]{../src/message_processing.cpp}
+\end{document}
