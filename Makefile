@@ -59,6 +59,9 @@ clean:
 cleandep:
 	rm -f $(DEPS)
 
+cleandoc:
+	rm -f doc/out/header*
+
 
 dockerim: Dockerfile
 	docker images 2>&1 | grep -qe ubuntu/server || docker build -t ubuntu/server:r1 .
@@ -86,7 +89,7 @@ ZIPFILE=49277628J_Práctica_SSTT_1920.zip
 
 $(ZIPFILE): $(DOCFILE)
 	rm -f $(TARGET) $(BINDIR)/webserver.log $(BINDIR)/.bash_history $(ZIPFILE)
-	tar cavf "49277628J_Práctica_SSTT_1920.zip" include src bin tests/*.pcapng Makefile $(DOCFILE)
+	tar cavf "49277628J_Práctica_SSTT_1920.zip" include src bin tests/capture-global.pcapng tests/pipelining.sh Makefile $(DOCFILE)
 
 tar: $(ZIPFILE)
 

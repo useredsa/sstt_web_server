@@ -126,19 +126,43 @@ Esta sección está pendiente. En la entrega de final incluirá las mejoras que 
 
 
 \subsection{Ejemplos de funcionamiento y capturas del tráfico de red}
-Como prueba del funcionamiento del servidor hemos realizado las siguientes capturas del tráfico.
+En el archivo \file{tests/capture-global.pcapng} se muestra una captura del funcionamiento del servidor tomada con Wireshark. En las fotos que presentamos hemos aplicado el filtro
+\begin{center}
+    \lstinline[language=java, basicstyle=\normalsize]
+    {http || tcp.flags.syn==1 || tcp.flags.fin==1 || tcp.flags.reset==1}
+\end{center}
+para mostrar solo los mensajes {\HTTP} y la apertura y el cierre de la conexión. A continuación detallamos el contenido.
 
 \begin{itemize}
-\item La captura \key{capture-home-page.pcapng} muestra los mensajes intercambiados para cargar la página de inicio.
+\item [\cref{img-cap-normal}] Una prueba de los mensajes intercambiados para cargar la página de inicio e introducir un correo electrónico. Puede servir para verificar la persistencia, viendo como el servidor mantiene la conexión abierta unos segundos esperando a la segunada acción.
 
-\item La captura \key{success-persistent.pcapng} contiene además los mensajes tras introducir el correo electrónico en el formulario. Puede servir para verificar la persistencia, viendo como el servidor mantiene la conexión abierta unos segundos esperando a la segunada acción.
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.95\textwidth]{tests/capture_normal.png}
+    \caption{Intercambio de mensajes sin errores.}
+    \label{img-cap-normal}
+\end{figure}
 
-\item La captura \key{capture-not-found.pcapng} muestra una respuesta \key{404 Not Found}.
+\item [\cref{img-cap-malfunctioning}] Una prueba de algunos mensajes de error. Muestra un \key{404 Not Found} y un \key{415 Unsupported Media Type}. Además, también muestra la robustez del servidor. Ante un {\POST} de más de \SI{8}{\kibi\byte}, que hemos simulado introduciendo $9000$ caracteres en el campo del correo, devuelve un mensaje \key{413 Request Entity Too Large} y corta la conexión% a footnote
+\footnote{Aunque como hemos explicado antes el servidor está preparado para procesar mensajes de tamaño arbitrario leyéndolos en bloques de \SI{8}{\kibi\byte}, hemos establecido el máximo en \SI{8}{\kibi\byte}.}
+.
 
-\item La captura \key{capture-unsupported-media-type.pcapng} muestra una respuesta \key{415 Unsupported Media Type}.
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.95\textwidth]{tests/capture-malfunctioning.png}
+    \caption{Intercambio de mensajes de error.}
+    \label{img-cap-malfunctioning}
+\end{figure}
 
-\item La captura \key{capture-request-entity-too-large.pcapng} nos muestra el comportamiento del servidor ante un mensaje {\POST} de \SI{9}{\kilo\byte}. Aunque como hemos explicado antes el servidor está preparado para procesar mensajes de tamaño arbitrario leyéndolos en bloques de \SI{8}{\kibi\byte}, hemos establecido el máximo en \SI{8}{\kibi\byte}. En la captura podemos ver que el servidor devuelve el mensaje de error \key{413 Request Entity Too Large} y corta la conexión.
+\item [\cref{img-cap-pipelining}] Una captura probando que el servidor acepta \key{pipelining}. Como el navegador no hacía \key{pipelining}, lo hemos probado utilizando el script del \cref{lst-pipelining-shell}. En un solo paquete {\TCP} se reciben $4$ mensajes {\GET} que el servidor responde en orden. Mediante los mensajes de log se vio que los $4$ mensajes se leyeron en la misma operación de lectura.
 
-\item La captura \key{capture-pipelining.pcapng} nos muestra la respuesta del servidor ante un cliente que lleva a cabo \key{pipelining} con un ejemplo en el que llegan $4$ mensajes {\GET} a la vez.
+\lstinputlisting[language=sh, float, label=lst-pipelining-shell]{tests/pipelining.sh}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.95\textwidth]{tests/capture-pipelining.png}
+    \caption{Prueba de \key{pipelining}.}
+    \label{img-cap-pipelining}
+\end{figure}
 
 \end{itemize}
