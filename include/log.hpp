@@ -78,7 +78,7 @@ public:
 
 private:
     void outputSignature(){
-        os << "INFO: ";
+        os << "INFO(socket " << client_fd << "): ";
     }
 } log(cout);
 

@@ -84,7 +84,7 @@ int main(int argc, char **argv) {
                 close(listenfd);
                 client_fd = socket_fd;
                 deal_with_client(); // El hijo termina tras llamar a esta función
-                log << "Child finished." << endl << panic(0); //TODO comprobar si es buena opción
+                logerr << "This shouldn't be printed." << endl << panic(0);
             default:
                 close(socket_fd); //TODO error handling?
         }

@@ -3,36 +3,38 @@
 
 namespace SSTT_HTTP_PARSING {
 
+// Format: "method uri version\r\n"
 int parse_request_line(Request_Line &rl, char* start) {
     char* sstart = start;
     rl.method = start;
-    while (*start != ' ' and *start != '\r' and *start != '\n' and *start != '\0')
+    while (*start != ' ' && *start != '\r' && *start != '\n' && *start != '\0')
         start++;
     if (*start != ' ')
         return -1;
     *start = '\0';
 
     rl.request_uri = ++start;
-    while (*start != ' ' and *start != '\r' and *start != '\n' and *start != '\0')
+    while (*start != ' ' && *start != '\r' && *start != '\n' && *start != '\0')
         start++;
     if (*start != ' ')
         return -1;
     *start = '\0';
 
     rl.version = ++start;
-    while (*start != ' ' and *start != '\r' and *start != '\n' and *start != '\0')
+    while (*start != ' ' && *start != '\r' && *start != '\n' && *start != '\0')
         start++;
-    if (*start != '\r' or *(start +1) != '\n')
+    if (*start != '\r' || *(start +1) != '\n')
         return -1;
     *start = '\0';
     start += 2;
     return start-sstart;
 }
 
+// Format: "name: value\r\n"
 int parse_header_field(Header_Field &hf, char* start) {
     char* sstart = start;
 	hf.field = start;
-	while (*start != ':' and *start != '\r' and *start != '\n' and *start != '\0')
+	while (*start != ':' && *start != '\r' && *start != '\n' && *start != '\0')
     	start++;
 	if (*start != ':')
     	return -1;
@@ -45,9 +47,9 @@ int parse_header_field(Header_Field &hf, char* start) {
     	return -1;
 
 	hf.value = start;
-	while (*start != '\r' and *start != '\n' and *start != '\0')
+	while (*start != '\r' && *start != '\n' && *start != '\0')
     	start++;
-    if (*start != '\r' or *(start +1) != '\n')
+    if (*start != '\r' || *(start +1) != '\n')
         return -1;
     *start = '\0';
     start += 2;
@@ -67,6 +69,9 @@ bool valid_uri(const char* uri) {
     			level--;
 			} else if (strncmp(last_slash, ".", uri-last_slash) != 0) {
     			level++;
+			}
+			if (level == 0 && strncmp(last_slash, "bin", uri-last_slash) != 0) {
+    			return false;
 			}
 			last_slash = uri+1;
         }
