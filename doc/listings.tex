@@ -5,12 +5,14 @@
 \crefname{lstlisting}{código}{códigos}
 \Crefname{lstlisting}{Código}{Códigos}
 
-\newcommand{\code}{\lstinline[basicstyle=\selectfont]}
 
 \definecolor{background}{rgb}{0.99,0.99,0.99}
 \definecolor{mygreen}{rgb}{0.1,0.6,0.1}
 \definecolor{mygray}{rgb}{0.5,0.5,0.5}
 \definecolor{mymauve}{rgb}{0.58,0,0.82}
+
+\definecolor{codeback}{rgb}{0.85,0,0.85}
+\newcommand{\code}{\lstinline[basicstyle=\selectfont, language=C]}
 
 \renewcommand{\lstlistlistingname}{Índice de códigos}
 \lstset{ 
@@ -38,7 +40,7 @@
   language=C++,                    % the language of the code
   morekeywords={},            % if you want to add more keywords to the set
   deletekeywords={},            % if you want to delete keywords from the given language
-  % escapeinside={(*}{*)},          % if you want to add LaTeX within your code
+  % escapeinside={----}{----},          % if you want to add LaTeX within your code
   extendedchars=true,              % lets you use non-ASCII characters; for 8-bits encodings only, does not work with UTF-8
   literate=
   {á}{{\'a}}1 {é}{{\'e}}1 {í}{{\'i}}1 {ó}{{\'o}}1 {ú}{{\'u}}1

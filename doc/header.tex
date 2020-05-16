@@ -31,15 +31,21 @@
 
 
 
-\newcommand{\key}{\texttt}
+\newcommand{\key}{\textsc}
 \newcommand{\file}{}
+\newcommand{\DNS}{DNS}
+\newcommand{\HTML}{HTML}
 \newcommand{\HTTP}{HTTP}
+\newcommand{\HTTPs}{HTTPs}
 \newcommand{\GET}{GET}
 \newcommand{\POST}{POST}
-\newcommand{\HTML}{HTML}
-\newcommand{\TCP}[0]{TCP}
 \newcommand{\Clang}{C}
 \newcommand{\Cplusplus}{C++}
+\newcommand{\TCP}[0]{TCP}
+\newcommand{\SMTP}{SMTP}
+\newcommand{\POP}{POP}
+\newcommand{\IP}{IP}
+\newcommand{\IPsec}{IPsec}
 
 
 
@@ -50,7 +56,7 @@
 \newpage
 
 \section{Introducción}
-La asignatura de Servicios Telemáticos del grado en Ingeniería Informática consta de una parte práctica que consiste en configurar y poner en marcha un conjunto de servicios telemáticos. El enunciado de la práctica %TODO referencia
+La asignatura de Servicios Telemáticos del grado en Ingeniería Informática consta de una parte práctica que consiste en configurar y poner en marcha un conjunto de servicios telemáticos. El enunciado de la práctica
 describe los objetivos. En esta memoria se recoge la implementación del enunciado así como el proceso de toma de decisiones.
 
 
@@ -58,6 +64,7 @@ describe los objetivos. En esta memoria se recoge la implementación del enuncia
 %\section{Configuraciones}
 
 \input{doc/http-server.tex}
+\input{doc/services.tex}
 
 \section{Horas de Trabajo}
 Para contabilizar las horas trabajadas en esta entrega hemos utilizado la herramienta \key{progesa-test} de la Facultad de Informática. A continuación se puede ver una tabla con el tiempo dedicado a cada apartado de la práctica.
@@ -71,12 +78,20 @@ Para contabilizar las horas trabajadas en esta entrega hemos utilizado la herram
     \hline
     Implementación básica servidor {\HTTP} & \SI{17}{\hour} \SI{24}{\minute} \\
     \hline
-    Documentación & \phantom{9}\SI{7}{\hour} \SI{39}{\minute} \\
+    Documentación del servidor {\HTTP} & \phantom{9}\SI{7}{\hour} \SI{39}{\minute} \\
     \hline
-    Revisión & \phantom{\SI{99}{\hour}} \SI{35}{\minute} \\
+    Revisión antes de la primera entrega & \phantom{\SI{99}{\hour}} \SI{35}{\minute} \\
     \hline
-    \textbf{TOTAL} & \SI{25}{\hour} \SI{38}{\minute} \\ \hline
-    % \textbf{MEDIAS} & 2.26\% & 5.45\% & 88.85\% & 3.43\% & 100\% \\ \hline
+
+    Configuración de los servicios telemáticos & \phantom{0}\SI{7}{\hour} \SI{30}{\minute} \\
+    \hline
+    % Capturas de tráfico y pruebas & \phantom{0}\SI{2}{\hour} \phantom{\SI{00}{\minute}} \\
+    % \hline
+    Documentación de los servicios telemáticos & \phantom{0}\SI{2}{\hour} \SI{53}{\minute} \\
+    \hline
+    Revisión final & \phantom{\SI{00}{\minute}} \SI{40}{\minute} \\
+    \hline
+    \textbf{TOTAL} & \SI{36}{\hour} \SI{41}{\minute} \\ \hline
 \end{tabular}
 \end{center}
 
